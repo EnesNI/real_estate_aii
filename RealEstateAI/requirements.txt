@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+streamlit
+pydantic
+email-validator
+pandas
+scikit-learn
+matplotlib
+plotly
+requests
+beautifulsoup4
