@@ -144,52 +144,26 @@ if page == "Property Search":
     st.title("Property Search")
     st.write("Filter and explore available properties.")
 
-    col1, col2, col3, col4 = st.columns(4)
-    city = col1.text_input("City")
-    state = col2.text_input("State (2-letter)")
-    min_price = col3.number_input("Min Price", min_value=0, step=10000, value=0)
-    max_price = col4.number_input("Max Price", min_value=0, step=10000, value=0)
+    city = st.selectbox("City", ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"])
+    square_feet = st.number_input("Square Feet", min_value=10.0, step=10.0, value=70.0)
+    bedrooms = st.number_input("Bedrooms", min_value=0, step=1, value=2)
+    bathrooms = st.number_input("Bathrooms", min_value=0.0, step=0.5, value=1.0)
+    year_built = st.number_input("Year Built", min_value=1800, max_value=2100, value=2010)
 
-    col5, col6, col7, col8 = st.columns(4)
-    min_sqft = col5.number_input("Min Sq Ft", min_value=0, step=10, value=0)
-    max_sqft = col6.number_input("Max Sq Ft", min_value=0, step=10, value=0)
-    bedrooms = col7.number_input("Bedrooms", min_value=0, step=1, value=0)
-    bathrooms = col8.number_input("Bathrooms", min_value=0.0, step=0.5, value=0.0)
-
-    if st.button("Search Properties"):
-        params = {
-            "city": city or None,
-            "state": state or None,
-            "min_price": min_price or None,
-            "max_price": max_price or None,
-            "min_sqft": min_sqft or None,
-            "max_sqft": max_sqft or None,
-            "bedrooms": bedrooms or None,
-            "bathrooms": bathrooms or None,
+    if st.button("Predict Price Growth"):
+        payload = {
+            "location": city,
+            "square_feet": square_feet,
+            "bedrooms": bedrooms,
+            "bathrooms": bathrooms,
+            "year_built": year_built,
         }
         try:
-            results = api_get("/properties", params=params)
-            if results:
-                st.dataframe(results, use_container_width=True)
-            else:
-                st.info("No properties matched your filters.")
+            result = api_post("/predict-growth", payload, token=st.session_state.token)
+            st.success("Prediction completed.")
+            st.metric("Expected Price Growth", f"{result['price_growth']}%")
         except RuntimeError as exc:
-            st.error(f"Search failed: {exc}")
-
-    if st.button("Scrape Sample Listings"):
-        try:
-            response = api_post("/scrape", {})
-            st.success(f"Added {response['added']} new listings from scraping.")
-        except RuntimeError as exc:
-            st.error(f"Scraping failed: {exc}")
-
-    if city:
-        try:
-            amenity_data = api_get("/amenities", params={"city": city})
-            st.subheader("Nearby Amenities")
-            st.write(", ".join(amenity_data["amenities"]))
-        except RuntimeError as exc:
-            st.warning(f"Amenities unavailable: {exc}")
+            st.error(f"Prediction failed: {exc}")
 
 
 if page == "Prediction Tool":

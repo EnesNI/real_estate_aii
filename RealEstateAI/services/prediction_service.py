@@ -69,3 +69,31 @@ class PredictionService:
             data["input_data"] = json.loads(data["input_data"])
             predictions.append(Prediction(**data))
         return predictions
+
+    def predict_growth(self, request: PredictionRequest) -> Prediction:
+        """Predict price growth for a property."""
+
+        input_data = {
+            "location": request.location,
+            "square_feet": request.square_feet,
+            "bedrooms": request.bedrooms,
+            "bathrooms": request.bathrooms,
+            "year_built": request.year_built,
+        }
+        try:
+            input_data = self.engine._normalize_features(input_data)
+            predicted_price = self.engine.predict(input_data)
+            future_price = self.engine.future_price(predicted_price)
+
+            return Prediction(
+                id=None,  # No database storage for this prediction
+                user_id=None,  # No user association for this prediction
+                property_id=None,  # No property association for this prediction
+                input_data=input_data,
+                predicted_price=predicted_price,
+                future_price=future_price,
+                created_at=datetime.utcnow().isoformat(),
+            )
+        except Exception as e:
+            print(f"Error in predict_growth: {e}")
+            raise

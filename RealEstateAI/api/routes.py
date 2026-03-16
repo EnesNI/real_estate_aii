@@ -105,6 +105,16 @@ def create_router(services: Services) -> APIRouter:
         prediction = services.prediction_service.predict_and_store(current_user.id, payload)
         return PredictionOut(**prediction.__dict__)
 
+    @router.post("/predict-growth", response_model=PredictionOut)
+    def predict_growth(payload: PredictionRequest) -> PredictionOut:
+        """Predict price growth for a property."""
+
+        try:
+            prediction = services.prediction_service.predict_growth(payload)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        return PredictionOut(**prediction.__dict__)
+
     @router.get("/predictions", response_model=list[PredictionOut])
     def get_predictions(current_user: User = Depends(get_current_user)) -> list[PredictionOut]:
         """Return prediction history for the current user."""
