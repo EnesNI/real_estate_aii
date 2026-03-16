@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 
 from core.config import get_settings
 from models.user import User
-from schemas.prediction_schema import MarketTrendsOut, PredictionOut, PredictionRequest
+from schemas.prediction_schema import MarketTrendsOut, PredictionGrowthOut, PredictionOut, PredictionRequest
 from schemas.property_schema import AmenityResponse, PropertyOut, PropertySearch, ScrapeRequest
 from schemas.user_schema import AuthResponse, UserCreate, UserLogin, UserOut, UserProfile
 from services.auth_service import AuthService
@@ -105,15 +105,15 @@ def create_router(services: Services) -> APIRouter:
         prediction = services.prediction_service.predict_and_store(current_user.id, payload)
         return PredictionOut(**prediction.__dict__)
 
-    @router.post("/predict-growth", response_model=PredictionOut)
-    def predict_growth(payload: PredictionRequest) -> PredictionOut:
+    @router.post("/predict-growth", response_model=PredictionGrowthOut)
+    def predict_growth(payload: PredictionRequest) -> PredictionGrowthOut:
         """Predict price growth for a property."""
 
         try:
             prediction = services.prediction_service.predict_growth(payload)
         except ValueError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-        return PredictionOut(**prediction.__dict__)
+        return PredictionGrowthOut(**prediction)
 
     @router.get("/predictions", response_model=list[PredictionOut])
     def get_predictions(current_user: User = Depends(get_current_user)) -> list[PredictionOut]:

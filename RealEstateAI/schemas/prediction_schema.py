@@ -29,6 +29,18 @@ class PredictionOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PredictionGrowthOut(BaseModel):
+    """Prediction response for price growth (no persistence)."""
+
+    predicted_price: float
+    future_price: float
+    price_growth: float
+    created_at: str
+    input_data: dict
+
+    model_config = {"from_attributes": True}
+
+
 class MarketTrendsOut(BaseModel):
     """Market trend summary statistics."""
 
